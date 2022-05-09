@@ -4,6 +4,7 @@ import com.github.javafaker.Faker;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +22,7 @@ public class CreateUserParametrizedTest {
     private String email;
     private String password;
     private String name;
+    private String accessToken;
 
     public CreateUserParametrizedTest(String email, String password, String name) {
         this.email = email;
@@ -43,6 +45,13 @@ public class CreateUserParametrizedTest {
     @Before
     public void setup() {
         userRequest = new UserRequest();
+    }
+
+    @After
+    public void tearDown() {
+        if (accessToken != null) {
+            userRequest.deleteUser(accessToken.substring(7));
+        }
     }
 
     @Test
