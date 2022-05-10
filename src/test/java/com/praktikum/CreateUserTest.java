@@ -22,13 +22,6 @@ public class CreateUserTest {
         userRequest = new UserRequest();
     }
 
-    @After
-    public void tearDown() {
-        if (accessToken != null) {
-            userRequest.deleteUser(accessToken.substring(7));
-        }
-    }
-
     @Test
     @DisplayName("Successful user creation")
     @Description("Успешное создание пользователя")
@@ -39,6 +32,10 @@ public class CreateUserTest {
         response.then()
                 .statusCode(SC_OK);
         Assert.assertTrue("Неверное тело ответа", response.body().as(CreateUserResponse.class).isSuccess());
+
+        if (accessToken != null) {
+            userRequest.deleteUser(accessToken.substring(7));
+        }
     }
 
     @Test
@@ -62,5 +59,19 @@ public class CreateUserTest {
         forbiddenRegisteredDataMap.put("message", "User already exists");
 
         Assert.assertEquals("Не верное тело ответа", forbiddenRegisteredDataMap.toString(), bodyResponseErrorMessage.toString());
+
+        if (accessToken != null) {
+            userRequest.deleteUser(accessToken.substring(7));
+        }
+
+        Response responseAuthorization = userRequest.authorizationUserResponse(user);
+        responseAuthorization.then().statusCode(SC_UNAUTHORIZED);
+        ResponseErrorMessage bodResponseErrorMessage = responseAuthorization.body().as(ResponseErrorMessage.class);
+
+        Map<String, String> authorizationInvalidLoginDataMap = new HashMap<>();
+        authorizationInvalidLoginDataMap.put("success", "false");
+        authorizationInvalidLoginDataMap.put("message", "email or password are incorrect");
+
+        Assert.assertEquals("Не верное тело ответа", authorizationInvalidLoginDataMap.toString(), bodResponseErrorMessage.toString());
     }
 }
