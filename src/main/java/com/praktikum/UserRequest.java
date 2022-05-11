@@ -81,7 +81,18 @@ public class UserRequest extends Base {
         given()
                 .spec(getBaseSpec())
                 .auth().oauth2(accessToken)
-                .when()
+                .when().log().body()
+                .delete("auth/user")
+                .then()
+                .statusCode(SC_ACCEPTED);
+    }
+
+    @Step("Удаление пользователя {token}")
+    public void deleteUserToken (String token) {
+        given()
+                .spec(getBaseSpec())
+                .auth().oauth2(token)
+                .when().log().body()
                 .delete("auth/user")
                 .then()
                 .statusCode(SC_ACCEPTED);

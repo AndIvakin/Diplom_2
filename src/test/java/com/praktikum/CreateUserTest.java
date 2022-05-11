@@ -16,10 +16,18 @@ import static org.apache.http.HttpStatus.*;
 public class CreateUserTest {
     public UserRequest userRequest;
     private String accessToken;
+    private String token;
 
     @Before
     public void setup() {
         userRequest = new UserRequest();
+    }
+
+    @After
+    public void tearDown() {
+        if(accessToken != null) {
+            userRequest.deleteUser(accessToken.substring(7));
+        }
     }
 
     @Test
@@ -32,10 +40,6 @@ public class CreateUserTest {
         response.then()
                 .statusCode(SC_OK);
         Assert.assertTrue("Неверное тело ответа", response.body().as(CreateUserResponse.class).isSuccess());
-
-        if (accessToken != null) {
-            userRequest.deleteUser(accessToken.substring(7));
-        }
     }
 
     @Test
@@ -60,18 +64,11 @@ public class CreateUserTest {
 
         Assert.assertEquals("Не верное тело ответа", forbiddenRegisteredDataMap.toString(), bodyResponseErrorMessage.toString());
 
-        if (accessToken != null) {
-            userRequest.deleteUser(accessToken.substring(7));
+        int statusCode = responseSecondRegistrationUser.statusCode();
+
+        if (statusCode == SC_ACCEPTED) {
+            token = responseSecondRegistrationUser.body().as(CreateUserResponse.class).getAccessToken();
+            userRequest.deleteUserToken(token.substring(7));
         }
-
-        Response responseAuthorization = userRequest.authorizationUserResponse(user);
-        responseAuthorization.then().statusCode(SC_UNAUTHORIZED);
-        ResponseErrorMessage bodResponseErrorMessage = responseAuthorization.body().as(ResponseErrorMessage.class);
-
-        Map<String, String> authorizationInvalidLoginDataMap = new HashMap<>();
-        authorizationInvalidLoginDataMap.put("success", "false");
-        authorizationInvalidLoginDataMap.put("message", "email or password are incorrect");
-
-        Assert.assertEquals("Не верное тело ответа", authorizationInvalidLoginDataMap.toString(), bodResponseErrorMessage.toString());
     }
 }
